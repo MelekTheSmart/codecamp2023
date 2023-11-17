@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <tileset version="1.5" tiledversion="1.7.2" name="Tile_corner" tilewidth="128" tileheight="128" tilecount="64" columns="8">
- <image source="C:/Users/merri/Downloads/terrain_corner.png" width="1024" height="1024"/>
+ <image source="terrain_corner.png" width="1024" height="1024"/>
  <wangsets>
   <wangset name="Unnamed Set" type="corner" tile="-1">
    <wangcolor name="Dirt" color="#ff0000" tile="-1" probability="1"/>

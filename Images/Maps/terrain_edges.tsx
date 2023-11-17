@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <tileset version="1.5" tiledversion="1.7.2" name="terrain_edges" tilewidth="128" tileheight="128" tilecount="20" columns="10">
- <image source="C:/Users/merri/Downloads/terrain_edges.png" width="1280" height="256"/>
+ <image source="terrain_edges.png" width="1280" height="256"/>
  <wangsets>
   <wangset name="PIPES" type="edge" tile="-1">
    <wangcolor name="Yellos" color="#ff0000" tile="-1" probability="1"/>
