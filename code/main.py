@@ -1,6 +1,6 @@
 import pygame, sys
 from pytmx.util_pygame import load_pygame
-maps = ['../Images/Maps/map1.tmx','../Images/Maps/map2.5.tmx']
+maps = ['../Images/Maps/map1.tmx','../Images/Maps/map2.5.tmx','../Images/Maps/tutorial1.0.tmx']
 BLUE_COLOR = 0
 GREEN_COLOR = 1
 RED_COLOR = 2
@@ -24,7 +24,10 @@ red = []
 red_pud = []
 purple = []
 purple_pud = []
-
+win = []
+winCon = pygame.image.load(("../Images/Objects/mushroom_3.png")).convert_alpha()
+winCon = pygame.transform.scale(winCon, (1680, 1000))
+playing = True
 class SpriteSheet:
 
     def __init__(self, filename):
@@ -109,7 +112,7 @@ class Player(pygame.sprite.Sprite):
         self.speed = 5
         self.toggle = True
         self.togglesize = False
-        self.size = 64
+        self.size = 55
         self.color = 0
         self.cubecycle = 0
         rectangle = self.rect
@@ -151,7 +154,7 @@ class Player(pygame.sprite.Sprite):
         elif not self.toggle:
             self.speed = 5
         if keys[pygame.K_p]:
-            player.next_level()
+            # player.next_level()
             player.reset()
 
         if keys[pygame.K_b]:
@@ -195,7 +198,7 @@ class Tile(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(topleft = pos)
 
 def checkbounds(playerrec,color):
-    global blue
+    global blue, playing
     check = False
     if (playerrec.collidelistall(blue_pud)):  # this tests every tile with the player rectangle for blue puddle
         player.color = BLUE_COLOR
@@ -209,6 +212,14 @@ def checkbounds(playerrec,color):
     if (playerrec.collidelistall(purple_pud)):  # this tests every tile with the player rectangle
         player.color = PINK_COLOR
         player.togglesize = False
+    if (playerrec.collidelistall(win)):  # this tests every tile with the player rectangle
+        gotoquick = 1
+        if current_level == len(maps)-1:
+            screen.blit((winCon),(0,0))
+            playing = False
+        else:
+            player.next_level()
+            player.reset()
     if color != BLUE_COLOR:
         if (playerrec.collidelistall(blue)):  # this tests every tile with the player rectangle
             check = True
@@ -227,7 +238,7 @@ def checkbounds(playerrec,color):
 
 
 def colorreset():
-    global boundary, blue, blue_pud, green,green_pud,red,red_pud,purple,purple_pud
+    global boundary, blue, blue_pud, green,green_pud,red,red_pud,purple,purple_pud,win
     boundary = []
     collision = tmx_data.get_layer_by_name('Collisions')
     for x, y, tile in collision:
@@ -285,7 +296,13 @@ def colorreset():
     for x, y, tile in purple_puddle:
        if tile:
            purple_pud.append(pygame.Rect([(x*32), (y*32), 32, 32]));
-    #purple
+    #WinCondition/NextLevel
+    win = []
+    wintiles = tmx_data.get_layer_by_name('WinTiles')
+    for x, y, tile in wintiles:
+       if tile:
+           win.append(pygame.Rect([(x*32), (y*32), 32, 32]));
+    #WinCondition/NextLevel
 colorreset()
 
 
@@ -304,42 +321,8 @@ def draw_map():
         if obj.image:
             Tile(pos = pos, surf=obj.image, groups = camera_group)
 draw_map()
-# print(tmx_data.layers)
-#
-# for layer in tmx_data.visible_layers:
-#     print (layer)
-#
-# print(tmx_data.layernames)
-#
-# for obj in tmx_data.objectgroups:
-#     print(obj)
-
-# get tiles
-# layer = tmx_data.get_layer_by_name('Floor')
-# for x,y,surf in layer.tiles(): # get all the information
-#     print(x * 128)
-#     print(y * 128)
-#     print(surf)
-#
-# print(layer.data)
-# print(layer.name)
-# print(layer.id)
-
-# get objects
-# object_layer = tmx_data.get_layer_by_name('Object Layer 1')
-# for obj in object_layer:
-#     if obj.type == "Building":
-#         print(obj)
-
-
-# for obj in tmx_data.objects:
-#     # print(obj.x)
-#     # print(obj.y)
-#     # print(obj.image)
-#     if obj.type() == 'Building':
-#         print(obj)
-player = Player((240,240),camera_group)
-while True:
+player = Player((64,64),camera_group)
+while playing:
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -379,3 +362,8 @@ while True:
     else:
         count += 1
         clock.tick(30)
+while True:
+    for events in pygame.event.get():  # get all pygame events
+        if events.type == pygame.QUIT:  # if event is quit then shutdown window and program
+            pygame.quit()
+            sys.exit()
