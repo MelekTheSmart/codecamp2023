@@ -1,18 +1,24 @@
 import pygame, sys
 from pytmx.util_pygame import load_pygame
 
-
+cooldown = 0
 class Player(pygame.sprite.Sprite):
     def __init__(self,pos,group):
         super().__init__(group)
-        self.image = pygame.image.load('../Images/Objects/mushroom_3.png')
+        # self.image = pygame.image.load('../Images/Objects/mushroom_3.png')
+        self.image = pygame.image.load('../Images/Objects/New Piskel-1.png.png')
         self.rect = self.image.get_rect(center = pos)
         self.direction = pygame.math.Vector2()
         self.speed = 5
+        self.toggle = True
+        self.togglesize = False
+        self.size = 32
 
         rectangle = self.rect
 
+
     def input(self):
+        global cooldown
         keys = pygame.key.get_pressed()
 
         if keys[pygame.K_w]:
@@ -28,10 +34,36 @@ class Player(pygame.sprite.Sprite):
             self.direction.x = 1
         else:
             self.direction.x = 0
+        if keys[pygame.K_LCTRL]:
+            self.toggle = not self.toggle
+        if self.toggle:
+            self.speed = 20
+        elif not self.toggle:
+            self.speed = 5
+        if keys[pygame.K_b]:
+            centerpos = (self.rect.center)
+            if not self.togglesize and cooldown>=0:
+                self.image = pygame.image.load('../Images/Objects/New Piskel-1.png (2).png')
+                self.rect = self.image.get_rect(center=centerpos)
+                self.size = 64
+                self.togglesize = True
+                cooldown = 10
+                self.speed = 5
+            elif self.togglesize and cooldown>=0:
+                self.image = pygame.image.load('../Images/Objects/New Piskel-1.png.png')
+                self.rect = self.image.get_rect(center=centerpos)
+                self.size = 32
+                self.togglesize = False
+                cooldown = 10
+                self.speed = 10
+        # if keys[pygame.K_v]:
+        #     self.image = pygame.image.load('../Images/Objects/New Piskel-1.png.png')
+        #     self.size = 32
+
 
     def update(self):
         self.input()
-        future = pygame.Rect([self.rect.x, self.rect.y, 64,64])
+        future = pygame.Rect([self.rect.x, self.rect.y, self.size,self.size])
         future.center += self.direction * self.speed
         if not checkbounds(future):
             self.rect.center += self.direction * self.speed
@@ -53,12 +85,13 @@ class Tile(pygame.sprite.Sprite):
         self.image = surf
         self.rect = self.image.get_rect(topleft = pos)
 pygame.init()
-screen = pygame.display.set_mode((1280,720))
+screen = pygame.display.set_mode((1680, 1000))
 tmx_data = load_pygame('../Images/Maps/map1.tmx')
 clock = pygame.time.Clock()
 sprite_group = pygame.sprite.Group()
 camera_group = CameraGroup()
 MOVEMENTSPEED = 5
+health = 2
 def checkbounds(playerrec):
     check = False
     if (playerrec.collidelistall(tiles)): #this tests every tile with the player rectangle
@@ -116,7 +149,7 @@ for obj in tmx_data.objects:
 #     # print(obj.image)
 #     if obj.type() == 'Building':
 #         print(obj)
-player = Player((100,100),camera_group)
+player = Player((240,240),camera_group)
 while True:
 
     for event in pygame.event.get():
@@ -144,6 +177,8 @@ while True:
                 if obj.name == 'Polygon':
                     points = [(point.x,point.y) for point in obj.points]
                     pygame.draw.polygon(screen,'green',points)
-
+        if cooldown > 0:
+            cooldown = cooldown - 1
+        # print(cooldown)
         pygame.display.update()
-        clock.tick(60)
+        clock.tick(120)
