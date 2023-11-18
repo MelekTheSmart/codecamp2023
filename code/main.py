@@ -1,6 +1,6 @@
 import pygame, sys
 from pytmx.util_pygame import load_pygame
-maps = ['../Images/Maps/map1.tmx','../Images/Maps/map2.5.tmx','../Images/Maps/tutorial1.0.tmx']
+maps = ['../Images/Maps/map3.tmx','../Images/Maps/hard.tmx','../Images/Maps/tutorial1.0.tmx']
 BLUE_COLOR = 0
 GREEN_COLOR = 1
 RED_COLOR = 2
@@ -25,7 +25,7 @@ red_pud = []
 purple = []
 purple_pud = []
 win = []
-winCon = pygame.image.load(("../Images/Objects/mushroom_3.png")).convert_alpha()
+winCon = pygame.image.load(("../Images/Objects/WinScreen.png"))
 winCon = pygame.transform.scale(winCon, (1680, 1000))
 playing = True
 class SpriteSheet:
