@@ -1,6 +1,6 @@
 import pygame, sys
 from pytmx.util_pygame import load_pygame
-maps = ['../Images/Maps/map3.tmx','../Images/Maps/hard.tmx','../Images/Maps/tutorial1.0.tmx']
+maps = ['../Images/Maps/map4.tmx','../Images/Maps/map3.tmx','../Images/Maps/tutorial1.0.tmx']
 BLUE_COLOR = 0
 GREEN_COLOR = 1
 RED_COLOR = 2
@@ -150,13 +150,13 @@ class Player(pygame.sprite.Sprite):
         if keys[pygame.K_LCTRL]:
             self.toggle = not self.toggle
         if self.toggle:
-            self.speed = 10
+            self.speed = 5
         elif not self.toggle:
             self.speed = 5
         if keys[pygame.K_p]:
             # player.next_level()
             player.reset()
-
+    
         if keys[pygame.K_b]:
             if cooldown == 0 and player.color != 3:
                 self.color += 1
