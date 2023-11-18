@@ -1,7 +1,30 @@
 import pygame, sys
 from pytmx.util_pygame import load_pygame
-
+maps = ['../Images/Maps/map1.tmx','../Images/Maps/map2.5.tmx']
+BLUE_COLOR = 0
+GREEN_COLOR = 1
+RED_COLOR = 2
+PINK_COLOR = 3
 cooldown = 0
+current_level = 0
+pygame.init()
+screen = pygame.display.set_mode((1680, 1000))
+tmx_data = load_pygame(maps[current_level])
+clock = pygame.time.Clock()
+sprite_group = pygame.sprite.Group()
+MOVEMENTSPEED = 5
+health = 2
+count = 0
+boundary = []
+blue = []
+blue_pud = []
+green = []
+green_pud = []
+red = []
+red_pud = []
+purple = []
+purple_pud = []
+
 class SpriteSheet:
 
     def __init__(self, filename):
@@ -77,21 +100,33 @@ class Player(pygame.sprite.Sprite):
         super().__init__(group)
         self.images = [
             SpriteSheet('../Images/Sprites/beeeiigcube1.2.png').load_grid_images(4, 1, x_margin=0, x_padding=0, y_margin=0, y_padding=0),
-            SpriteSheet('../Images/Sprites/smoolcube1.2.png').load_grid_images(4, 1, x_margin=2, x_padding=0, y_margin=0, y_padding=0),
-            SpriteSheet('../Images/Sprites/SmoolCube.png').load_grid_images(4, 1, x_margin=2, x_padding=0, y_margin=0, y_padding=0),
-                SpriteSheet('../Images/Sprites/SmoolCube.png').load_grid_images(4, 1, x_margin=2, x_padding=0, y_margin=0, y_padding=0)]
-        self.image = self.images[1][0]
+            SpriteSheet('../Images/Sprites/Green.png').load_grid_images(4, 1, x_margin=0, x_padding=0, y_margin=0, y_padding=0),
+            SpriteSheet('../Images/Sprites/Red.png').load_grid_images(4, 1, x_margin=0, x_padding=0, y_margin=0, y_padding=0),
+            SpriteSheet('../Images/Sprites/Pink.png').load_grid_images(4, 1, x_margin=0, x_padding=0, y_margin=0, y_padding=0)]
+        self.image = self.images[0][0]
         self.rect = self.image.get_rect(center = pos)
         self.direction = pygame.math.Vector2()
         self.speed = 5
         self.toggle = True
         self.togglesize = False
-        self.size = 16
-        self.cubesize = 1
+        self.size = 64
+        self.color = 0
         self.cubecycle = 0
         rectangle = self.rect
+        self.startpos = pos
+    def next_level(self):
+        global current_level
+        current_level += 1
 
+    def reset(self):
+        global tmx_data
 
+        self.image = self.images[0][0]
+        self.color = 0
+        self.rect = self.image.get_rect(center = self.startpos)
+        tmx_data = load_pygame(maps[current_level])
+        colorreset()
+        draw_map()
     def input(self):
         global cooldown
         keys = pygame.key.get_pressed()
@@ -115,24 +150,19 @@ class Player(pygame.sprite.Sprite):
             self.speed = 10
         elif not self.toggle:
             self.speed = 5
+        if keys[pygame.K_p]:
+            player.next_level()
+            player.reset()
+
         if keys[pygame.K_b]:
-            # centerpos = (self.rect.center)
-            if not self.togglesize and cooldown==0:
-                # self.image = self.images[0][1]
-                # self.rect = self.image.get_rect(center=centerpos)
-                self.size = 64
-                self.togglesize = True
+            if cooldown == 0 and player.color != 3:
+                self.color += 1
                 cooldown = 10
-                self.speed = 5
-                self.cubesize = 0
-            elif self.togglesize and cooldown==0:
-                # self.image = self.images[1][1]
-                # self.rect = self.image.get_rect(center=centerpos)
-                self.size = 32
-                self.togglesize = False
+            elif cooldown == 0 and player.color ==3:
+                self.color = 0
                 cooldown = 10
-                self.speed = 10
-                self.cubesize = 1
+
+
         # if keys[pygame.K_v]:
         #     self.image = pygame.image.load('../Images/Objects/New Piskel-1.png.png')
         #     self.size = 32
@@ -143,7 +173,7 @@ class Player(pygame.sprite.Sprite):
         # if player.rect.collidelistall()
         future = pygame.Rect([self.rect.x, self.rect.y, self.size,self.size])
         future.center += self.direction * self.speed
-        if not checkbounds(future,player.cubesize):
+        if not checkbounds(future,player.color):
             self.rect.center += self.direction * self.speed
 
 class CameraGroup(pygame.sprite.Group):
@@ -154,127 +184,126 @@ class CameraGroup(pygame.sprite.Group):
 
     def custom_draw(self):
         for sprite in sorted(self.sprites(),key = lambda sprite: sprite.rect.centery):
-            # player.cubesize = 1
-            player.image = player.images[player.cubesize][player.cubecycle]
+            # player.color = 1
+            player.image = player.images[player.color][player.cubecycle]
             screen.blit(sprite.image,sprite.rect)
-
+camera_group = CameraGroup()
 class Tile(pygame.sprite.Sprite):
     def __init__(self,pos,surf,groups):
         super().__init__(groups)
         self.image = surf
         self.rect = self.image.get_rect(topleft = pos)
-pygame.init()
-screen = pygame.display.set_mode((1680, 1000))
-tmx_data = load_pygame('../Images/Maps/map1.tmx')
-clock = pygame.time.Clock()
-sprite_group = pygame.sprite.Group()
-camera_group = CameraGroup()
-MOVEMENTSPEED = 5
-health = 2
-count = 0
+
 def checkbounds(playerrec,color):
     global blue
     check = False
     if (playerrec.collidelistall(blue_pud)):  # this tests every tile with the player rectangle for blue puddle
-        player.cubesize = 0
+        player.color = BLUE_COLOR
         player.togglesize = True
     if (playerrec.collidelistall(green_pud)):  # this tests every tile with the player rectangle
-        player.cubesize = 1
+        player.color = GREEN_COLOR
         player.togglesize = False
     if (playerrec.collidelistall(red_pud)):  # this tests every tile with the player rectangle
-        player.cubesize = 2
+        player.color = RED_COLOR
         player.togglesize = False
     if (playerrec.collidelistall(purple_pud)):  # this tests every tile with the player rectangle
-        player.cubesize = 3
+        player.color = PINK_COLOR
         player.togglesize = False
-    if color != 0:
+    if color != BLUE_COLOR:
         if (playerrec.collidelistall(blue)):  # this tests every tile with the player rectangle
             check = True
-    if color != 1:
+    if color != GREEN_COLOR:
         if (playerrec.collidelistall(green)):  # this tests every tile with the player rectangle
             check = True
-    if color != 2:
-        if (playerrec.collidelistall(green)):  # this tests every tile with the player rectangle
+    if color != RED_COLOR:
+        if (playerrec.collidelistall(red)):  # this tests every tile with the player rectangle
             check = True
-    if color != 3:
-        if (playerrec.collidelistall(green)):  # this tests every tile with the player rectangle
+    if color != PINK_COLOR:
+        if (playerrec.collidelistall(purple)):  # this tests every tile with the player rectangle
             check = True
     if (playerrec.collidelistall(boundary)): #this tests every tile with the player rectangle
         check = True
     return check
-boundary = []
-collision = tmx_data.get_layer_by_name('Collisions')
-for x, y, tile in collision:
-    if tile:
-        boundary.append(pygame.Rect([(x*128), (y*128), 128, 128]));
-#Blue
-blue = []
-bluetiles = tmx_data.get_layer_by_name('BlueTiles')
-for x, y, tile in bluetiles:
-    if tile:
-        blue.append(pygame.Rect([(x*128), (y*128), 128, 128]));
 
-blue_pud = []
-blue_puddle = tmx_data.get_layer_by_name('BluePuddle')
-for x, y, tile in blue_puddle:
-    if tile:
-        blue_pud.append(pygame.Rect([(x*128), (y*128), 128, 128]));
-#Blue
 
-#Green
-green = []
-greentiles = tmx_data.get_layer_by_name('GreenTiles')
-for x, y, tile in greentiles:
-    if tile:
-        green.append(pygame.Rect([(x*128), (y*128), 128, 128]));
+def colorreset():
+    global boundary, blue, blue_pud, green,green_pud,red,red_pud,purple,purple_pud
+    boundary = []
+    collision = tmx_data.get_layer_by_name('Collisions')
+    for x, y, tile in collision:
+        if tile:
+            boundary.append(pygame.Rect([(x*32), (y*32), 32, 32]));
+    #Blue
+    blue = []
+    bluetiles = tmx_data.get_layer_by_name('BlueTiles')
+    for x, y, tile in bluetiles:
+        if tile:
+            blue.append(pygame.Rect([(x*32), (y*32), 32, 32]));
 
-green_pud = []
-green_puddle = tmx_data.get_layer_by_name('GreenPuddle')
-for x, y, tile in green_puddle:
-    if tile:
-        green_pud.append(pygame.Rect([(x*128), (y*128), 128, 128]));
-#Green
+    blue_pud = []
+    blue_puddle = tmx_data.get_layer_by_name('BluePuddle')
+    for x, y, tile in blue_puddle:
+        if tile:
+            blue_pud.append(pygame.Rect([(x*32), (y*32), 32, 32]));
+    #Blue
 
-#Red
-red = []
-redtiles = tmx_data.get_layer_by_name('RedTiles')
-for x, y, tile in redtiles:
-    if tile:
-        red.append(pygame.Rect([(x*128), (y*128), 128, 128]));
-red_pud = []
-red_puddle = tmx_data.get_layer_by_name('RedPuddle')
-for x, y, tile in green_puddle:
-    if tile:
-        red_pud.append(pygame.Rect([(x*128), (y*128), 128, 128]));
-#Red
+    #Green
+    green = []
+    greentiles = tmx_data.get_layer_by_name('GreenTiles')
+    for x, y, tile in greentiles:
+        if tile:
+            green.append(pygame.Rect([(x*32), (y*32), 32, 32]));
 
-#purple
-purple = []
-purpletiles = tmx_data.get_layer_by_name('PurpleTiles')
-for x, y, tile in purpletiles:
-   if tile:
-       purple.append(pygame.Rect([(x*128), (y*128), 128, 128]));
-purple_pud = []
-purple_puddle = tmx_data.get_layer_by_name('PurplePuddle')
-for x, y, tile in green_puddle:
-   if tile:
-       purple_pud.append(pygame.Rect([(x*128), (y*128), 128, 128]));
-#purple
+    green_pud = []
+    green_puddle = tmx_data.get_layer_by_name('GreenPuddle')
+    for x, y, tile in green_puddle:
+        if tile:
+            green_pud.append(pygame.Rect([(x*32), (y*32), 32, 32]));
+    #Green
+
+    #Red
+    red = []
+    redtiles = tmx_data.get_layer_by_name('RedTiles')
+    for x, y, tile in redtiles:
+        if tile:
+            red.append(pygame.Rect([(x*32), (y*32), 32, 32]));
+    red_pud = []
+    red_puddle = tmx_data.get_layer_by_name('RedPuddle')
+    for x, y, tile in red_puddle:
+        if tile:
+            red_pud.append(pygame.Rect([(x*32), (y*32), 32, 32]));
+    #Red
+
+    #purple
+    purple = []
+    purpletiles = tmx_data.get_layer_by_name('PurpleTiles')
+    for x, y, tile in purpletiles:
+       if tile:
+           purple.append(pygame.Rect([(x*32), (y*32), 32, 32]));
+    purple_pud = []
+    purple_puddle = tmx_data.get_layer_by_name('PurplePuddle')
+    for x, y, tile in purple_puddle:
+       if tile:
+           purple_pud.append(pygame.Rect([(x*32), (y*32), 32, 32]));
+    #purple
+colorreset()
 
 
 # camera_group = pygame.sprite.Group()
 #Go throuh layers
-for layer in tmx_data.visible_layers:
-    # if layer.name in ('Floor', 'Plants and rocks', 'Pipes')
-     if hasattr(layer,'data'):
-         for x,y,surf in layer.tiles():
-            pos = (x * 128, y*128)
-            Tile(pos = pos, surf = surf, groups = sprite_group)
+def draw_map():
+    for layer in tmx_data.visible_layers:
+        # if layer.name in ('Floor', 'Plants and rocks', 'Pipes')
+         if hasattr(layer,'data'):
+             for x,y,surf in layer.tiles():
+                pos = (x * 32, y*32)
+                Tile(pos = pos, surf = surf, groups = sprite_group)
 
-for obj in tmx_data.objects:
-    pos = (obj.x, obj.y)
-    if obj.image:
-        Tile(pos = pos, surf=obj.image, groups = camera_group)
+    for obj in tmx_data.objects:
+        pos = (obj.x, obj.y)
+        if obj.image:
+            Tile(pos = pos, surf=obj.image, groups = camera_group)
+draw_map()
 # print(tmx_data.layers)
 #
 # for layer in tmx_data.visible_layers:
